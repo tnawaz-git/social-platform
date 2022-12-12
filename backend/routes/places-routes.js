@@ -7,7 +7,7 @@ const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
 
-router.get('/:pid', placesControllers.getPlaceById);
+router.get('/:pid/:uid', placesControllers.getPlaceById);
 
 router.get('/user/:uid', placesControllers.getPlacesByUserId);
 
@@ -46,5 +46,6 @@ router.post('/comment/:pid/:uid', placesControllers.commentPost);
 
 router.post('/share/:pid/:uid', placesControllers.sharePost);
 
+router.get('/trends', placesControllers.getTrends);
 
 module.exports = router;

@@ -147,7 +147,7 @@ const PlaceItem = props => {
       <Modal
         show={showMap}
         onCancel={closeMapHandler}
-        header={props.address}
+        //header={props.address}
         contentClass="place-item__modal-content"
         footerClass="place-item__modal-actions"
         footer={<Button onClick={closeMapHandler}>CLOSE</Button>}
@@ -254,7 +254,7 @@ const PlaceItem = props => {
           </div>
           <div className="place-item__info">
             <h2>{props.title}</h2>
-            <h3>{props.address}</h3>
+            //<h3>{props.address}</h3>
             <p>{props.description}</p>
             <h5>Likes:</h5>
             <ul>
@@ -288,7 +288,7 @@ const PlaceItem = props => {
             <Button inverse onClick={bookmarkPost}>Bookmark</Button>
             <br></br>
             {auth.userId === props.creatorId && (
-              <Button to={`/places/${props.id}`}>Edit</Button>
+              <Button to={`/places/${props.id}/${auth.userId}`}>Edit</Button>
             )}
 
             {auth.userId === props.creatorId && (

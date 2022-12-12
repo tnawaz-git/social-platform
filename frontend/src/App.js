@@ -46,7 +46,7 @@ const App = () => {
         <Route path="/users/verificationForm" exact>
           <VerificationForm />
         </Route>
-        <Route path="/places/:placeId">
+        <Route path="/places/:placeId/:userId">
           <UpdatePlace />
         </Route>
         <Route path="/editor" exact>

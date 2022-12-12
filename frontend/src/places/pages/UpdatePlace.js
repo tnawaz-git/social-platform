@@ -41,7 +41,7 @@ const UpdatePlace = () => {
     const fetchPlace = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/places/${placeId}`
+          `http://localhost:5000/api/places/${placeId}/${auth.userId}`
         );
         setLoadedPlace(responseData.place);
         setFormData(

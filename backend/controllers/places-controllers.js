@@ -10,7 +10,7 @@ const User = require('../models/user');
 
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-
+  const userId = req.params.uid;
   let place;
   try {
     place = await Place.findById(placeId);
@@ -26,6 +26,29 @@ const getPlaceById = async (req, res, next) => {
     const error = new HttpError(
       'Could not find place for the provided id.',
       404
+    );
+    return next(error);
+  }
+
+  place.views.push(
+    {
+      "user": userId,
+      "location":{
+        lat:0,
+        lng:0,
+        city:"New York",
+        country:"United States"
+      },
+      "datetime": new Date()
+    }
+  )
+
+  try {
+    await place.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not add view of place.',
+      500
     );
     return next(error);
   }
@@ -394,6 +417,43 @@ const sharePost = async (req, res, next) => {
   res.status(201).json({ place: createdPlace });
 };
 
+const getTrends = async () => {
+  let postArray =[];
+  Place.find({} , (err, posts) => {
+    if(err){
+      const error = new HttpError(
+        'Something went wrong. Please try again',
+        500
+      );
+      return next(error);
+    }   
+    posts.map(post => {
+        postArray.push([post.id,posts.views.length])
+    })
+})
+
+let sortedArray=[];
+if (postArray.length>10){
+sortedArray = postArray.sort(function(a, b) { return b; }).reverse().slice(0,10);
+}
+let trends = [];
+for (const trend of sortedArray){
+  let place;
+  try {
+    place = await Place.findById(trend[0]);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find post.',
+      500
+    );
+    return next(error);
+  }
+  trends.push(place);
+}
+
+res.status(201).json({ topTenTrends: trends });
+
+};
 
 exports.getPlaceById = getPlaceById;
 exports.getPlacesByUserId = getPlacesByUserId;
@@ -404,3 +464,4 @@ exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
 exports.likePost = likePost;
 exports.commentPost = commentPost;
+exports.getTrends = getTrends;
