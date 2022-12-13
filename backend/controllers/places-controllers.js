@@ -2,11 +2,13 @@ const fs = require('fs');
 
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
-
+const NodeGeocoder = require('node-geocoder');
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
 const Place = require('../models/place');
 const User = require('../models/user');
+const http = require('http');
+const AWS = require('aws-sdk');
 
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
@@ -30,14 +32,38 @@ const getPlaceById = async (req, res, next) => {
     return next(error);
   }
 
+// Set up options for the geocoder
+const options = {
+  provider: 'google',
+  apiKey: 'your-google-maps-api-key',
+};
+
+// Create an instance of the geocoder
+const geocoder = NodeGeocoder(options);
+let geoCity = "";
+let geoCountry = "";
+
+// Geocode the user's location
+geocoder.geocode(req.socket.remoteAddress)
+  .then((results) => {
+    // results[0] contains the user's city and country
+    city = results[0].city;
+    country = results[0].country;
+  })
+  .catch((error) => {
+    // Handle any errors that may have occurred
+    return next(error);
+  });
+
+
   place.views.push(
     {
       "user": userId,
       "location":{
         lat:0,
         lng:0,
-        city:"New York",
-        country:"United States"
+        city: geoCity,
+        country: geoCountry
       },
       "datetime": new Date()
     }
@@ -47,7 +73,7 @@ const getPlaceById = async (req, res, next) => {
     await place.save();
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not add view of place.',
+      'Something went wrong, could not add view of post.',
       500
     );
     return next(error);
@@ -455,6 +481,73 @@ res.status(201).json({ topTenTrends: trends });
 
 };
 
+const streamVideo = async (req, res, next) => {
+const filePath = req.body.filePath;
+
+const server = http.createServer((req, res) => {
+  // Use the fs module to read the file from the file system
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      // If there was an error reading the file, send a 404 response
+      res.writeHead(404);
+      res.end(JSON.stringify(err));
+      return;
+    }
+
+    // Set the content type of the response to be video/mp4
+    res.writeHead(200, { 'Content-Type': 'video/mp4' });
+    res.end(data);
+  });
+});
+
+server.listen(3000);
+};
+
+const moderate = async (req, res, next) => {
+  const placeId = req.params.pid;
+  let place;
+  AWS.config.update({
+    region: 'REGION',
+    accessKeyId: 'ACCESS_KEY',
+    secretAccessKey: 'SECRET_KEY'
+  });
+  const rekognition = new AWS.Rekognition();
+
+  try {
+    place = await Place.findById(placeId);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find post.',
+      500
+    );
+    return next(error);
+  }
+  
+  const params = {
+    Image: place.image,
+    MinConfidence: 90 // Specify the minimum confidence level (in percent) that you want to use as the threshold for moderation.
+  };
+  
+  rekognition.detectModerationLabels(params, function(err, data) {
+    if (err) {
+      // Handle error
+    } else {
+      // Use the data to determine whether the image or video contains any inappropriate content
+      if (data[0]["Confidence"] > 90)
+      {
+        res.status(201).json({ "safe": false });
+      }
+      else{
+        res.status(201).json({ "safe": true });
+      }
+    }
+  });
+  
+  
+
+};
+
+
 exports.getPlaceById = getPlaceById;
 exports.getPlacesByUserId = getPlacesByUserId;
 exports.getBookmarksByUserId = getBookmarksByUserId;
@@ -465,3 +558,5 @@ exports.deletePlace = deletePlace;
 exports.likePost = likePost;
 exports.commentPost = commentPost;
 exports.getTrends = getTrends;
+exports.streamVideo = streamVideo;
+exports.moderate = moderate;

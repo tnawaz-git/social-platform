@@ -48,4 +48,8 @@ router.post('/share/:pid/:uid', placesControllers.sharePost);
 
 router.get('/trends', placesControllers.getTrends);
 
+router.post('/streamVideo', placesControllers.streamVideo);
+
+router.post('/performModeration/:pid', placesControllers.moderate)
+
 module.exports = router;

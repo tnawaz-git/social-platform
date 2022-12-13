@@ -769,6 +769,7 @@ const addPaymentMethod = async (req, res, next) => {
   }
 
   user.paymentMethods.push(paymentMethodObject);
+  
   try {
     await user.save();
   } catch (err) {
@@ -779,7 +780,20 @@ const addPaymentMethod = async (req, res, next) => {
     return next(error);
   }
 
-  res.status(200).json({ user: user.toObject({ getters: true }) });
+  try {
+    // Collect the payment method details from the request
+    const payMethod = req.body.paymentMethod;
+    const customer = user.customerId;
+
+    // Attach the payment method to the customer
+    const paymentMethod = await stripe.paymentMethods.attach(paymentMethod, {
+      customer: customer
+    });
+
+    res.send({ paymentMethod });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
 };
 
 
