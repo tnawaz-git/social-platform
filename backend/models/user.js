@@ -35,7 +35,8 @@ const userSchema = new Schema({
   paymentMethods:[{ type: mongoose.Types.ObjectId, required: true}],
   mutedUsers:[{type: mongoose.Types.ObjectId, required: true, ref: 'User'}],
   blockedUsers:[{type: mongoose.Types.ObjectId, required: true, ref: 'User'}],
-  reportedUsers:[{type: mongoose.Types.ObjectId, required: true, ref: 'User'}]
+  reportedUsers:[{type: mongoose.Types.ObjectId, required: true, ref: 'User'}],
+  accessRight: { type: Number, required: true } 
 
 });
 

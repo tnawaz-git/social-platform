@@ -53,4 +53,6 @@ router.post('/users/report/:uid', usersController.reportUser);
 
 router.post('/addPaymentMethod/:uid', usersController.addPaymentMethod);
 
+router.get('/getAccessRights/:uid', userController.getAccessRight);
+
 module.exports = router;

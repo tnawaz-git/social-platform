@@ -7,6 +7,17 @@ const User = require('../models/user');
 const Subscription = require('../models/subscriptions');
 const Message = require('../models/messages');
 const Plan = require('../models/plan');
+const access = require('access');
+
+const ACCESS_LEVELS = {
+  ADMIN: 0,
+  USER: 1,
+  GUEST: 2
+};
+
+// Set the default access level for all users
+access.setDefaultLevel(ACCESS_LEVELS.GUEST);
+access.grant(ACCESS_LEVELS.ADMIN, '/admin/*');
 
 var Publishable_Key = '';
 var Secret_Key = '';
@@ -118,7 +129,8 @@ const signup = async (req, res, next) => {
     paymentMethods: [],
     mutedUsers:[],
     blockedUsers:[],
-    reportedUsers:[]
+    reportedUsers:[],
+    accessRight: ACCESS_LEVELS.USER
   });
 
   try {
@@ -130,6 +142,8 @@ const signup = async (req, res, next) => {
     );
     return next(error);
   }
+
+  access.grant(ACCESS_LEVELS.USER, '/users/'+createdUser.id);
 
   let token;
   try {
@@ -796,6 +810,23 @@ const addPaymentMethod = async (req, res, next) => {
   }
 };
 
+const getAccessRights = async (req,res,next) => {
+  const userId = req.params.uid;
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find user.',
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ accessRight: user.accessRight });
+};
+
+
+
 
 exports.getUsers = getUsers;
 exports.getSpecificUser= getSpecificUser;
@@ -814,4 +845,5 @@ exports.blockUser = blockUser;
 exports.muteUser = muteUser;
 exports.reportUser = reportUser;
 exports.addPaymentMethod = addPaymentMethod;
+exports.getAccessRights = getAccessRights;
 
