@@ -19,7 +19,7 @@ const placeSchema = new Schema({
         city: { type: String, required: true},
         country:{ type: String, required: true }
       },
-      datetime: {type: datetime, required: true}
+      datetime: {type: Date, required: true}
     }
   ]
 });

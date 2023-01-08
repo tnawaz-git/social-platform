@@ -11,6 +11,9 @@ const HttpError = require('./models/http-error');
 
 const app = express();
 
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
 app.use(bodyParser.json());
 
 app.use('/uploads/images', express.static(path.join('uploads', 'images')));
@@ -57,3 +60,57 @@ mongoose
   .catch(err => {
     console.log(err);
   });
+
+  //messages
+app.use(express.static(__dirname + '/public'));
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);
+  });
+});
+
+server.listen(3001, () => {
+  console.log('listening on *:3001');
+});
+
+//video player
+
+app.get('/video', (req, res) => {
+  res.sendFile(path.join(__dirname + '/public/video.html'));
+});
+
+app.get('/video/:filename', (req, res) => {
+  res.sendFile(path.join(__dirname + '/public/videos/' + req.params.filename));
+});
+
+app.listen(3002, () => {
+  console.log('listening on *:3002');
+});
+
+//viewer count
+let viewerCount = 0;
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  viewerCount++;
+  io.emit('viewer count', viewerCount);
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+    viewerCount--;
+    io.emit('viewer count', viewerCount);
+  });
+});
+
+
+
+
+
+

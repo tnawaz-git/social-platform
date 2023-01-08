@@ -26,6 +26,7 @@
     "node-media-server": "^2.4.9",
     "passport": "^0.6.0",
     "reactjs-video-playlist-player": "^1.1.1",
+    "socket.io": "^4.5.4",
     "stripe": "^11.1.0",
     "uuid": "^3.3.3"
   },

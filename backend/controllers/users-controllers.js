@@ -7,7 +7,7 @@ const User = require('../models/user');
 const Subscription = require('../models/subscriptions');
 const Message = require('../models/messages');
 const Plan = require('../models/plan');
-const access = require('access');
+//const access = require('access');
 
 const ACCESS_LEVELS = {
   ADMIN: 0,
@@ -15,9 +15,9 @@ const ACCESS_LEVELS = {
   GUEST: 2
 };
 
-// Set the default access level for all users
-access.setDefaultLevel(ACCESS_LEVELS.GUEST);
-access.grant(ACCESS_LEVELS.ADMIN, '/admin/*');
+// // Set the default access level for all users
+// access.setDefaultLevel(ACCESS_LEVELS.GUEST);
+// access.grant(ACCESS_LEVELS.ADMIN, '/admin/*');
 
 var Publishable_Key = '';
 var Secret_Key = '';
@@ -286,7 +286,30 @@ const addNotifications = async (req, res, next) => {
     return next(error);
   }
 
-  user.notifications.push(interactor.name + " " + event + " your post");
+  if (event == "like")
+  {
+    user.notifications.push(interactor.name + " liked your post");
+  }
+
+  else if (event == "message")
+  {
+    user.notifications.push("Message from " + interactor.name);
+  }
+
+  else if (event == "commented")
+  {
+    user.notifications.push(interactor.name + " commented on your post");
+  }
+
+  else if (event == "share")
+  {
+    user.notifications.push(interactor.name + " shared on your post");
+  }
+
+  else
+  {
+    user.notifications.push("Notification from " + interactor.name);
+  }
 
   try {
     await user.save();
@@ -825,6 +848,16 @@ const getAccessRights = async (req,res,next) => {
   res.status(201).json({ accessRight: user.accessRight });
 };
 
+const getUserByString = async (req,res,next) => {
+  const subName = req.params.subName;
+
+  User.find(
+    { "name": { "$regex": subName, "$options": "i" } },
+    function(err,results) { 
+      res.status(201).json({ users: results });
+    } 
+  );
+};
 
 
 
@@ -846,4 +879,5 @@ exports.muteUser = muteUser;
 exports.reportUser = reportUser;
 exports.addPaymentMethod = addPaymentMethod;
 exports.getAccessRights = getAccessRights;
+exports.getUserByString = getUserByString;
 
